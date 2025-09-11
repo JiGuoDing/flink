@@ -26,6 +26,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Partitioner that distributes the data equally by cycling through the output channels.
+ * <br>
+ * 轮训
  *
  * @param <T> Type of the elements in the Stream being rebalanced
  */
@@ -44,6 +46,7 @@ public class RebalancePartitioner<T> extends StreamPartitioner<T> {
 
     @Override
     public int selectChannel(SerializationDelegate<StreamRecord<T>> record) {
+        // 对下游的通道数取模
         nextChannelToSendTo = (nextChannelToSendTo + 1) % numberOfChannels;
         return nextChannelToSendTo;
     }

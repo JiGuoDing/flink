@@ -182,12 +182,16 @@ public class StreamExecutionEnvironment implements AutoCloseable {
 
     // ------------------------------------------------------------------------
 
-    /** The execution configuration for this environment. */
+    /** The execution configuration for this environment.
+     * <br>
+     * 运行配置，用于配置 Flink 作业的执行参数，如并行度、执行模式、重启策略等。
+     * */
     protected final ExecutionConfig config = new ExecutionConfig();
 
     /** Settings that control the checkpointing behavior. */
     protected final CheckpointConfig checkpointCfg = new CheckpointConfig();
 
+    // 算子 DAG 的中间表示, Transformation 类在 Flink 中用于表示算子的逻辑操作, 每个数据流操作(如map, filter, reduce等)都会生成一个 Transformation 实例, 描述该操作的输入、输出、并行度和依赖关系等信息
     protected final List<Transformation<?>> transformations = new ArrayList<>();
 
     private final Map<AbstractID, CacheTransformation<?>> cachedTransformations = new HashMap<>();
@@ -239,7 +243,7 @@ public class StreamExecutionEnvironment implements AutoCloseable {
         this(new Configuration());
         // unfortunately, StreamExecutionEnvironment always (implicitly) had a public constructor.
         // This constructor is not useful because the execution environment cannot be used for
-        // execution. We're keeping this to appease the binary compatibiliy checks.
+        // execution. We're keeping this to appease the binary compatibility checks.
     }
 
     /**
@@ -1933,7 +1937,7 @@ public class StreamExecutionEnvironment implements AutoCloseable {
     }
 
     /**
-     * Ads a data source with a custom type information thus opening a {@link DataStream}. Only in
+     * Adds a data source with a custom type information thus opening a {@link DataStream}. Only in
      * very special cases does the user need to support type information. Otherwise use {@link
      * #addSource(org.apache.flink.streaming.api.functions.source.SourceFunction)}
      *
