@@ -45,7 +45,7 @@ abstract class AbstractQueryableStateOperator<S extends State, IN>
 
     /**
      * The state instance created on open. This is updated by the subclasses of this class, because
-     * the state update interface depends on the state type (e.g. AppendingState#add(IN) vs.
+     * the state update interface depends on the state type (e.g. AppendingState#add(IN) vc.
      * ValueState#update(OUT)).
      */
     protected transient S state;

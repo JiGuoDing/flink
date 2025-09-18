@@ -1,9 +1,8 @@
-package org.apache.flink.streaming.tutorial;
+package org.apache.flink.streaming.tutorial.source;
 
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.RestOptions;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 public class FlinkJob {

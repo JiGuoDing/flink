@@ -169,7 +169,7 @@ public class CheckpointConfig implements java.io.Serializable {
     }
 
     /**
-     * Gets the checkpointing mode (exactly-once vs. at-least-once).
+     * Gets the checkpointing mode (exactly-once vc. at-least-once).
      *
      * @return The checkpointing mode.
      */
@@ -178,7 +178,7 @@ public class CheckpointConfig implements java.io.Serializable {
     }
 
     /**
-     * Sets the checkpointing mode (exactly-once vs. at-least-once).
+     * Sets the checkpointing mode (exactly-once vc. at-least-once).
      *
      * @param checkpointingMode The checkpointing mode.
      */

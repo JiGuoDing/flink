@@ -44,7 +44,7 @@ public class ExecutionCheckpointingOptions {
             ConfigOptions.key("execution.checkpointing.mode")
                     .enumType(CheckpointingMode.class)
                     .defaultValue(CheckpointingMode.EXACTLY_ONCE)
-                    .withDescription("The checkpointing mode (exactly-once vs. at-least-once).");
+                    .withDescription("The checkpointing mode (exactly-once vc. at-least-once).");
 
     public static final ConfigOption<Duration> CHECKPOINTING_TIMEOUT =
             ConfigOptions.key("execution.checkpointing.timeout")

@@ -520,7 +520,7 @@ public class StreamExecutionEnvironment implements AutoCloseable {
      * restarted from the latest completed checkpoint.
      *
      * <p>The job draws checkpoints periodically, in the given interval. The system uses the given
-     * {@link CheckpointingMode} for the checkpointing ("exactly once" vs "at least once"). The
+     * {@link CheckpointingMode} for the checkpointing ("exactly once" vc "at least once"). The
      * state will be stored in the configured state backend.
      *
      * <p>NOTE: Checkpointing iterative streaming dataflows is not properly supported at the moment.
@@ -626,7 +626,7 @@ public class StreamExecutionEnvironment implements AutoCloseable {
     }
 
     /**
-     * Returns the checkpointing mode (exactly-once vs. at-least-once).
+     * Returns the checkpointing mode (exactly-once vc. at-least-once).
      *
      * <p>Shorthand for {@code getCheckpointConfig().getCheckpointingMode()}.
      *
