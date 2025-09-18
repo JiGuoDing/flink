@@ -15,6 +15,9 @@ public class FlinkJob {
          */
         // StreamExecutionEnvironment localEnvironmentWithWebUI = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(
         //         new Configuration());
+        /*
+        sign-off标记可以在提交界面右下角的设置中打开
+         */
 
         Configuration configuration = new Configuration();
         configuration.set(RestOptions.BIND_PORT, "8082");
