@@ -22,7 +22,7 @@ public class FileSourceJob {
          */
         // 从文件读取数据
         FileSource<String> fileSource = FileSource
-                .forRecordStreamFormat(new TextLineInputFormat(), new Path("/Users/jiguoding/Downloads/trace.csv "))
+                .forRecordStreamFormat(new TextLineInputFormat(), new Path("src/main/java/org/apache/flink/streaming/tutorial/resources/sql.py"))
                 .build();
 
         DataStreamSource<String> fileStreamSource = env.fromSource(

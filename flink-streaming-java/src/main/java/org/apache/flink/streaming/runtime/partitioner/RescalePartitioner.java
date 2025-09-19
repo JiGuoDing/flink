@@ -51,6 +51,7 @@ public class RescalePartitioner<T> extends StreamPartitioner<T> {
 
     @Override
     public int selectChannel(SerializationDelegate<StreamRecord<T>> record) {
+        // 上游算子与下游算子形成映射关系，如果并行度大于 1，那么每个上游算子只会与部分下游算子通信
         if (++nextChannelToSendTo >= numberOfChannels) {
             nextChannelToSendTo = 0;
         }
