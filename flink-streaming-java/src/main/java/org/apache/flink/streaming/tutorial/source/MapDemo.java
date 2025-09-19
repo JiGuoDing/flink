@@ -2,6 +2,7 @@ package org.apache.flink.streaming.tutorial.source;
 
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.tutorial.bean.WaterSensor;
 
@@ -17,7 +18,9 @@ public class MapDemo {
         );
 
         // map算子，一进一出
-        streamSource.map((MapFunction<WaterSensor, String>) WaterSensor::getId);
+        SingleOutputStreamOperator<String> mapStream = streamSource.map((MapFunction<WaterSensor, String>) WaterSensor::getId);
+
+        mapStream.print();
 
         env.execute();
     }
