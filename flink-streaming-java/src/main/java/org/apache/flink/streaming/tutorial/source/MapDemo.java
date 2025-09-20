@@ -18,10 +18,32 @@ public class MapDemo {
         );
 
         // map算子，一进一出
-        SingleOutputStreamOperator<String> mapStream = streamSource.map((MapFunction<WaterSensor, String>) WaterSensor::getId);
+        // 方式1: lambda 表达式
+        // SingleOutputStreamOperator<String> mapStream = streamSource.map((MapFunction<WaterSensor, String>) WaterSensor::getId);
+
+        // 方式2: 匿名类
+        /*
+        SingleOutputStreamOperator<String> mapStream = streamSource.map(new MapFunction<WaterSensor, String>() {
+            @Override
+            public String map(WaterSensor value) throws Exception {
+                return value.getId();
+            }
+        });
+         */
+
+        // 方式3: 自定义类来实现 MapFunction
+        SingleOutputStreamOperator<String> mapStream = streamSource.map(new MyMapFunction());
 
         mapStream.print();
 
         env.execute();
+    }
+
+    public static class MyMapFunction implements MapFunction<WaterSensor, String> {
+
+        @Override
+        public String map(WaterSensor value) throws Exception {
+            return value.getId();
+        }
     }
 }
