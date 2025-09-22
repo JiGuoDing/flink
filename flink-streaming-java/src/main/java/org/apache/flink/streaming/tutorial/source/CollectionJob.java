@@ -3,8 +3,6 @@ package org.apache.flink.streaming.tutorial.source;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import java.util.Arrays;
-
 public class CollectionJob {
 
     public static void main(String[] args) throws Exception {
