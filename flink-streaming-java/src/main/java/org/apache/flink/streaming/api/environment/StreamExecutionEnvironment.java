@@ -112,6 +112,8 @@ import org.apache.flink.util.TernaryBoolean;
 import org.apache.flink.util.WrappingRuntimeException;
 
 import com.esotericsoftware.kryo.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
@@ -1269,7 +1271,7 @@ public class StreamExecutionEnvironment implements AutoCloseable {
             Collection<OUT> data, TypeInformation<OUT> typeInfo) {
         Preconditions.checkNotNull(data, "Collection must not be null");
 
-        // must not have null elements and mixed elements
+        // must not have null elements and mixed element types
         FromElementsFunction.checkCollection(data, typeInfo.getTypeClass());
 
         SourceFunction<OUT> function = new FromElementsFunction<>(data);

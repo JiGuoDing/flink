@@ -47,7 +47,7 @@ import static org.apache.flink.util.Preconditions.checkArgument;
 @Public
 public class SingleOutputStreamOperator<T> extends DataStream<T> {
 
-    /** Indicate this is a non-parallel operator and cannot set a non-1 degree of parallelism. * */
+    /** Indicate this is a non-parallel operator and cannot set a non-1 degree of parallelism. */
     protected boolean nonParallel = false;
 
     /**

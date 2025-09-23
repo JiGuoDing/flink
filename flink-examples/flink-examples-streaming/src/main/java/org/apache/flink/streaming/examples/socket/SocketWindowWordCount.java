@@ -18,6 +18,7 @@
 
 package org.apache.flink.streaming.examples.socket;
 
+import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -25,6 +26,9 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements a streaming windowed version of the "WordCount" program.
@@ -39,6 +43,8 @@ import org.apache.flink.streaming.api.windowing.time.Time;
  * <p>and run this example with the hostname and the port as arguments.
  */
 public class SocketWindowWordCount {
+
+    private static Logger logger = LoggerFactory.getLogger(SocketWindowWordCount.class);
 
     public static void main(String[] args) throws Exception {
 
@@ -77,9 +83,56 @@ public class SocketWindowWordCount {
                                         },
                                 Types.POJO(WordWithCount.class))
                         .keyBy(value -> value.word)
-                        .window(TumblingProcessingTimeWindows.of(Time.seconds(5)))
-                        .reduce((a, b) -> new WordWithCount(a.word, a.count + b.count))
-                        .returns(WordWithCount.class);
+                        .window(TumblingProcessingTimeWindows.of(Time.seconds(2)))
+                        // aggregate 聚合方式
+                        .aggregate(
+                                new AggregateFunction<
+                                        WordWithCount, WordWithCount, WordWithCount>() {
+
+                                    @Override
+                                    public WordWithCount createAccumulator() {
+                                        logger.info("createAccumulator invoked");
+                                        // initialize with empty word and zero count
+                                        return new WordWithCount("", 0L);
+                                    }
+
+                                    /*
+                                       把单个输入合并到累加器(acc)——按元素到达时间调用，做增量更新
+                                    */
+                                    @Override
+                                    public WordWithCount add(
+                                            WordWithCount value, WordWithCount accumulator) {
+                                        // set the word if this is the first element
+                                        if (accumulator.word == null
+                                                || accumulator.word.isEmpty()) {
+                                            accumulator.word = value.word;
+                                        }
+                                        accumulator.count += value.count;
+                                        return accumulator;
+                                    }
+
+                                    @Override
+                                    public WordWithCount getResult(WordWithCount accumulator) {
+                                        return accumulator;
+                                    }
+
+                                    /*
+                                       把两个累加器合并成一个——在需要合并状态时调用。
+                                    */
+                                    @Override
+                                    public WordWithCount merge(WordWithCount a, WordWithCount b) {
+                                        String word =
+                                                (a.word != null && !a.word.isEmpty())
+                                                        ? a.word
+                                                        : b.word;
+                                        long count = (a.count) + (b.count);
+                                        return new WordWithCount(word, count);
+                                    }
+                                });
+
+        // reduce 聚合方式
+        // .reduce((a, b) -> new WordWithCount(a.word, a.count + b.count))
+        // .returns(WordWithCount.class);
 
         // print the results with a single thread, rather than in parallel
         windowCounts.print().setParallelism(1);

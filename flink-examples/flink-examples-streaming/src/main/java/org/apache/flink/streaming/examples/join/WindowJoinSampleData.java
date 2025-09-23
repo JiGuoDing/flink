@@ -33,7 +33,7 @@ import java.util.Random;
 @SuppressWarnings("serial")
 public class WindowJoinSampleData {
 
-    static final String[] NAMES = {"tom", "jerry", "alice", "bob", "john", "grace"};
+    static final String[] NAMES = {"jgd", "tom", "wwh", "alice", "gr", "john", "grace"};
     static final int GRADE_COUNT = 5;
     static final int SALARY_MAX = 10000;
 

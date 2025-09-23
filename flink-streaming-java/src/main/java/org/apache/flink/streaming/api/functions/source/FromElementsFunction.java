@@ -117,8 +117,7 @@ public class FromElementsFunction<T>
         checkIterable(elements, Object.class);
     }
 
-    @VisibleForTesting
-    @Nullable
+    // @VisibleForTesting
     public TypeSerializer<T> getSerializer() {
         return serializer;
     }
