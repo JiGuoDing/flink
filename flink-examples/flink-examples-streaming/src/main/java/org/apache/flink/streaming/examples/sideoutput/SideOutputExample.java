@@ -52,6 +52,12 @@ import java.time.Duration;
  * <p>This is a modified version of {@link
  * org.apache.flink.streaming.examples.windowing.WindowWordCount} that has a filter in the tokenizer
  * and only emits some words for counting while emitting the other words to a side output.
+ * <p>
+ *     SideOutput 的核心作用<br>
+ *      - 分流处理：将一个 DataStream 按照不同条件拆分成多个子流<br>
+ *      - 异常/特殊数据隔离：例如将格式错误、迟到数据、空值等发送到 SideOutput，避免污染主流<br>
+ *      - 多路输出：在同一个算子中实现多种输出逻辑<br>
+ * </p>
  */
 public class SideOutputExample {
 
@@ -59,7 +65,8 @@ public class SideOutputExample {
      * We need to create an {@link OutputTag} so that we can reference it when emitting data to a
      * side output and also to retrieve the side output stream from an operation.
      */
-    private static final OutputTag<String> rejectedWordsTag = new OutputTag<String>("rejected") {};
+    private static final OutputTag<String> rejectedWordsTag = new OutputTag<String>("rejected") {
+    };
 
     public static void main(String[] args) throws Exception {
 
@@ -71,6 +78,7 @@ public class SideOutputExample {
 
         // make parameters available in the web interface
         env.getConfig().setGlobalJobParameters(params);
+        env.setParallelism(1);
 
         // get input data
         DataStream<String> textWithTimestampAndWatermark;
@@ -99,11 +107,13 @@ public class SideOutputExample {
         SingleOutputStreamOperator<Tuple2<String, Integer>> tokenized =
                 textWithTimestampAndWatermark.process(new Tokenizer());
 
+        // 从 tokenized 取出侧输出流
         DataStream<String> rejectedWords =
                 tokenized
                         .getSideOutput(rejectedWordsTag)
                         .map(value -> "rejected: " + value, Types.STRING);
 
+        // 统计 tokenized 中符合要求(字符数不大于5)的单词的出现次数
         DataStream<Tuple2<String, Integer>> counts =
                 tokenized
                         .keyBy(value -> value.f0)
@@ -153,7 +163,7 @@ public class SideOutputExample {
 
     /**
      * Implements the string tokenizer that splits sentences into words as a user-defined
-     * FlatMapFunction. The function takes a line (String) and splits it into multiple pairs in the
+     * ProcessFunction. The function takes a line (String) and splits it into multiple pairs in the
      * form of "(word,1)" ({@code Tuple2<String, Integer>}).
      *
      * <p>This rejects words that are longer than 5 characters long.
@@ -163,8 +173,7 @@ public class SideOutputExample {
 
         @Override
         public void processElement(
-                String value, Context ctx, Collector<Tuple2<String, Integer>> out)
-                throws Exception {
+                String value, Context ctx, Collector<Tuple2<String, Integer>> out) {
             // normalize and split the line
             String[] tokens = value.toLowerCase().split("\\W+");
 
@@ -172,7 +181,7 @@ public class SideOutputExample {
             for (String token : tokens) {
                 if (token.length() > 5) {
                     ctx.output(rejectedWordsTag, token);
-                } else if (token.length() > 0) {
+                } else if (!token.isEmpty()) {
                     out.collect(new Tuple2<>(token, 1));
                 }
             }

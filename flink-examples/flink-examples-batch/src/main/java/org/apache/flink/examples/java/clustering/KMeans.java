@@ -101,7 +101,7 @@ public class KMeans {
 
         DataSet<Centroid> newCentroids =
                 points
-                        // compute closest centroid for each point
+                        // compute the closest centroid for each point
                         .map(new SelectNearestCenter())
                         .withBroadcastSet(loop, "centroids")
                         // count and sum point coordinates for each centroid

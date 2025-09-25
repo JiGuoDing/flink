@@ -38,6 +38,9 @@ import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.Duration;
 import java.util.Random;
 
@@ -57,12 +60,21 @@ import java.util.Random;
  */
 public class IterateExample {
 
+    private static final Logger LOG = LoggerFactory.getLogger(IterateExample.class);
     private static final int BOUND = 100;
+
+    // Tuple5 f0...f4
+    // f0: 原始第一个数(固定)
+    // f1: 原始第二个数(固定)
+    // f2: 前一个 fibonacci 序列值
+    // f3: 当前 fibonacci 序列值
+    // f4: 迭代次数
 
     private static final OutputTag<Tuple5<Integer, Integer, Integer, Integer, Integer>>
             ITERATE_TAG =
-                    new OutputTag<Tuple5<Integer, Integer, Integer, Integer, Integer>>(
-                            "iterate") {};
+            new OutputTag<>(
+                    "iterate") {
+            };
 
     // *************************************************************************
     // PROGRAM
@@ -82,6 +94,7 @@ public class IterateExample {
 
         // make parameters available in the web interface
         env.getConfig().setGlobalJobParameters(params);
+        env.setParallelism(1);
 
         // create input stream of integer pairs
         DataStream<Tuple2<Integer, Integer>> inputStream;
@@ -99,7 +112,13 @@ public class IterateExample {
             inputStream = env.addSource(new RandomFibonacciSource());
         }
 
+        /*
+            IterativeStream 概述
+            IterativeStream 提供流式数据中的“循环”能力：把流的一部分元素送回到迭代头，进行多轮处理，直到满足终止条件后再放行到后续算子。
+            常见模式是：创建 iterate -> 在迭代体内做一次或多次计算 -> 把“需要继续迭代”的元素通过 feedback 流回送(通常是 SideOutput) -> 用 closeWith 把 feedback 连接回头部
+         */
         // create an iterative data stream from the input with 5 second timeout
+        // 参数 5000L 指定了迭代的超时时间，表示如果在 5000 毫秒内没有新的数据进入迭代体，迭代将自动终止( Number of milliseconds to wait between inputs before shutting down)。
         IterativeStream<Tuple5<Integer, Integer, Integer, Integer, Integer>> it =
                 inputStream.map(new InputMap()).iterate(5000L);
 
@@ -108,12 +127,14 @@ public class IterateExample {
         SingleOutputStreamOperator<Tuple5<Integer, Integer, Integer, Integer, Integer>> step =
                 it.process(new Step());
 
+        // closeWith 将某个在迭代体产生的 DataStream 注册为反馈流，送回到迭代头，进行下一轮处理。
         // close the iteration by selecting the tuples that were directed to the
         // 'iterate' channel in the output selector
+        // 实际上是在 JobGraph 中添加 feedbackStream 与 it 的头部之间的逻辑连线
         it.closeWith(step.getSideOutput(ITERATE_TAG));
 
         // to produce the final get the input pairs that have the greatest iteration counter
-        // on a 1 second sliding window
+        // on a 1-second sliding window
         DataStream<Tuple2<Tuple2<Integer, Integer>, Integer>> numbers = step.map(new OutputMap());
 
         // emit results
@@ -193,7 +214,8 @@ public class IterateExample {
 
         @Override
         public Tuple5<Integer, Integer, Integer, Integer, Integer> map(
-                Tuple2<Integer, Integer> value) throws Exception {
+                Tuple2<Integer, Integer> value) {
+            LOG.info("input one: {}", value);
             return new Tuple5<>(value.f0, value.f1, value.f0, value.f1, 0);
         }
     }
@@ -209,14 +231,16 @@ public class IterateExample {
         public void processElement(
                 Tuple5<Integer, Integer, Integer, Integer, Integer> value,
                 Context ctx,
-                Collector<Tuple5<Integer, Integer, Integer, Integer, Integer>> out)
-                throws Exception {
+                Collector<Tuple5<Integer, Integer, Integer, Integer, Integer>> out) {
+            // 更新斐波那契数列，计数器加一
             Tuple5<Integer, Integer, Integer, Integer, Integer> element =
                     new Tuple5<>(value.f0, value.f1, value.f3, value.f2 + value.f3, ++value.f4);
 
             if (value.f2 < BOUND && value.f3 < BOUND) {
+                LOG.info("output one to side output: {}", element);
                 ctx.output(ITERATE_TAG, element);
             } else {
+                LOG.info("output one to main stream: {}", element);
                 out.collect(element);
             }
         }
