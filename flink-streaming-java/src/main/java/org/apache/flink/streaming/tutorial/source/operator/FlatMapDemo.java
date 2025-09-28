@@ -1,4 +1,4 @@
-package org.apache.flink.streaming.tutorial.source;
+package org.apache.flink.streaming.tutorial.source.operator;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;

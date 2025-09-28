@@ -1,4 +1,4 @@
-package org.apache.flink.streaming.tutorial.source;
+package org.apache.flink.streaming.tutorial.source.job;
 
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.typeinfo.Types;

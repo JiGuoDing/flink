@@ -1,4 +1,4 @@
-package org.apache.flink.streaming.tutorial.source;
+package org.apache.flink.streaming.tutorial.source.job;
 
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.configuration.Configuration;

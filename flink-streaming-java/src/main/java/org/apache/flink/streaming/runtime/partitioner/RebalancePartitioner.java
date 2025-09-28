@@ -32,7 +32,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * @param <T> Type of the elements in the Stream being rebalanced
  */
 @Internal
-public class RebalancePartitioner<T> extends StreamPartitioner<T> {
+public class  RebalancePartitioner<T> extends StreamPartitioner<T> {
     private static final long serialVersionUID = 1L;
 
     private int nextChannelToSendTo;

@@ -466,7 +466,7 @@ public class DataStream<T> {
      * @return The DataStream with rebalance partitioning set.
      */
     public DataStream<T> rebalance() {
-        return setConnectionType(new RebalancePartitioner<T>());
+        return setConnectionType(new RebalancePartitioner<>());
     }
 
     /**
