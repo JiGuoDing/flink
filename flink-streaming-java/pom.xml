@@ -107,7 +107,7 @@ under the License.
             <scope>compile</scope>
         </dependency>
 
-<!--		New dependency added to learn about Flink'-->
+<!--		New dependency added to learn about Flink-->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-connector-files</artifactId>
@@ -117,6 +117,12 @@ under the License.
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-connector-datagen</artifactId>
+			<version>1.17.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-kafka</artifactId>
 			<version>1.17.2</version>
 		</dependency>
 
