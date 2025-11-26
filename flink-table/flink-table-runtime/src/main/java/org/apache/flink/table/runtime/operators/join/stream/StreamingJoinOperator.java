@@ -227,7 +227,7 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator {
                     // state.add(record, 0) 保存该记录并把匹配数（associations）设置为0
                     inputSideOuterStateView.addRecord(input, 0);
                 } else { // there are matched rows on the other side 若另一侧有匹配
-                    if (otherIsOuter) { // other side is outer 另一侧流也是 outer，需要考虑 null-padding
+                    if (otherIsOuter) { // other side is outer 另一侧流也是 outer（此时为 Full Join），需要考虑是否存在 null-padding
                         // ? 为何要 cast 为 OuterJoinRecordStateView
                         OuterJoinRecordStateView otherSideOuterStateView =
                                 (OuterJoinRecordStateView) otherSideStateView;
@@ -239,7 +239,7 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator {
                                 // send -D[null+other] 发送 -D[null + other] 撤回之前的 null-padding
                                 outRow.setRowKind(RowKind.DELETE);
                                 outputNullPadding(other, !inputIsLeft);
-                            } // ignore matched number > 0 若匹配次数 > 0 则忽略
+                            } // ignore matched number > 0 若匹配次数 > 0 则必然已经没有 null-padding，故忽略
                             // otherState.update(other, old + 1) 更新另一侧状态中匹配记录的匹配次数 + 1
                             otherSideOuterStateView.updateNumOfAssociations(
                                     other, outerRecord.numOfAssociations + 1);
@@ -255,7 +255,7 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator {
                         output(input, other, inputIsLeft);
                     }
                     // state.add(record, other.size)
-                    // 输入侧状态中添加该记录，标记匹配次数为 “匹配到的记录数”
+                    // 输入侧状态中添加该记录，标记匹配次数为 “匹配到的另一侧的记录数”
                     inputSideOuterStateView.addRecord(input, associatedRecords.size());
                 }
             } else { // input side not outer 输入侧不是 outer
@@ -285,7 +285,7 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator {
                         outRow.setRowKind(RowKind.INSERT);
                     } else { // 另一侧也不是 outer （inner join）
                         // send +I/+U[record+other]s (using input RowKind)
-                        // ? 为何要使用输入的 RowKind
+                        // ? 为何要使用原来的 RowKind
                         outRow.setRowKind(inputRowKind);
                     }
                     for (RowData other : associatedRecords.getRecords()) {
@@ -309,6 +309,7 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator {
                 }
                 // nothing to do when input side is not outer 输入侧不是 outer 则无需处理（因为当前前提是另一侧没有与 input 匹配的记录）
             } else { // there are matched rows on the other side 另一侧有与 input 匹配的记录
+                // ? 这里的 outer 代表什么，为什么要区分是否是 outer
                 if (inputIsOuter) { // 如果输入侧是 outer，需要撤回之前输出的 [input + other] 结果
                     // send -D[record+other]s
                     outRow.setRowKind(RowKind.DELETE);
