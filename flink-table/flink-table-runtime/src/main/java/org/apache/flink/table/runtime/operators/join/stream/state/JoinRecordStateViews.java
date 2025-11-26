@@ -48,7 +48,9 @@ public final class JoinRecordStateViews {
             JoinInputSideSpec inputSideSpec,
             InternalTypeInfo<RowData> recordType,
             long retentionTime) {
+        // 基于 retentionTime 创建 StateTtlConfig，统一给底层 Flink State (ValueState / MapState) 设置 TTL
         StateTtlConfig ttlConfig = createTtlConfig(retentionTime);
+        // 根据 JoinInputSideSpec 的不同，创建不同的 JoinRecordStateView 实现类
         if (inputSideSpec.hasUniqueKey()) {
             if (inputSideSpec.joinKeyContainsUniqueKey()) {
                 return new JoinKeyContainsUniqueKey(ctx, stateName, recordType, ttlConfig);
@@ -68,6 +70,8 @@ public final class JoinRecordStateViews {
 
     // ------------------------------------------------------------------------------------
 
+    // * 输入侧有唯一键，且 join key 本身就能唯一定位记录（例如主键 join）
+    // * 在 join key 唯一的情况下，不浪费空间用 MapState
     private static final class JoinKeyContainsUniqueKey implements JoinRecordStateView {
 
         private final ValueState<RowData> recordState;
@@ -109,6 +113,9 @@ public final class JoinRecordStateViews {
         }
     }
 
+    // * 输入侧有唯一键，但唯一键不等同于 join key，在同一个 join key 下，可能有多条具有不同唯一键的记录
+    // * 例如 join key: order_id，唯一键: (order_id, line_id)
+    // * 使用 MapState 来存储记录，key 为唯一键，value 为记录本身
     private static final class InputSideHasUniqueKey implements JoinRecordStateView {
 
         // stores record in the mapping <UK, Record>
@@ -151,6 +158,8 @@ public final class JoinRecordStateViews {
         }
     }
 
+    // * 输入测没有唯一键，即可能出现「完全相同的 RowData 多次出现」
+    // * 底层使用 MapState<RowData, Integer> 来存储记录及其出现的次数
     private static final class InputSideHasNoUniqueKey implements JoinRecordStateView {
 
         private final MapState<RowData, Integer> recordState;
