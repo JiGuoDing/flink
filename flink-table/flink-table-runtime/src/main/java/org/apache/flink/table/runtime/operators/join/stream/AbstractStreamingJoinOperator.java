@@ -109,6 +109,8 @@ public abstract class AbstractStreamingJoinOperator extends AbstractStreamOperat
      * The {@link AssociatedRecords} is the records associated to the input row. It is a wrapper of
      * {@code List<OuterRecord>} which provides two helpful methods {@link #getRecords()} and {@link
      * #getOuterRecords()}. See the method Javadoc for more details.
+     * <br>
+     * 封装匹配的记录和匹配的记录数
      */
     protected static final class AssociatedRecords {
         private final List<OuterRecord> records;

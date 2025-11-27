@@ -83,7 +83,7 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator {
         this.leftNullRow = new GenericRowData(leftType.toRowSize());
         this.rightNullRow = new GenericRowData(rightType.toRowSize());
 
-        // initialize states
+        // initialize states 初始化状态视图
         if (leftIsOuter) {
             this.leftRecordStateView =
                     OuterJoinRecordStateViews.create(

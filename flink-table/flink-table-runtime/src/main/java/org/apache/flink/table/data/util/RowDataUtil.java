@@ -25,7 +25,7 @@ import org.apache.flink.types.RowKind;
 public final class RowDataUtil {
 
     /**
-     * Returns true if the message is either {@link RowKind#INSERT} or {@link RowKind#UPDATE_AFTER},
+     * Returns true if the message is either {@link RowKind#INSERT} (插入新纪录) or {@link RowKind#UPDATE_AFTER} (插入被删除(UPDATE_BEFORE)、更新后的纪录),
      * which refers to an accumulate operation of aggregation.
      */
     public static boolean isAccumulateMsg(RowData row) {
