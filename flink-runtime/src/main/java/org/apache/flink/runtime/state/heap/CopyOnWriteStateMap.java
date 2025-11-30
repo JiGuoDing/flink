@@ -389,9 +389,11 @@ public class CopyOnWriteStateMap<K, N, S> extends StateMap<K, N, S> {
         int index = hash & (tab.length - 1);
 
         for (StateMapEntry<K, N, S> e = tab[index]; e != null; e = e.next) {
+            // * 如果该条目已存在，则返回现有的条目；如果不存在，则创建一个新的条目
             if (e.hash == hash && key.equals(e.key) && namespace.equals(e.namespace)) {
 
                 // copy-on-write check for entry
+                // * 检查找到的条目的版本，如果该条目对快照来说已过期，则创建新的副本（实际逻辑更复杂）
                 if (e.entryVersion < highestRequiredSnapshotVersion) {
                     e = handleChainedEntryCopyOnWrite(tab, index, e);
                 }

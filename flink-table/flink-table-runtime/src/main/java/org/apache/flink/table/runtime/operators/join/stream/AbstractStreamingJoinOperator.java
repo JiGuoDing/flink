@@ -160,6 +160,7 @@ public abstract class AbstractStreamingJoinOperator extends AbstractStreamOperat
                         (OuterJoinRecordStateView) otherSideStateView;
                 Iterable<Tuple2<RowData, Integer>> records =
                         outerStateView.getRecordsAndNumOfAssociations();
+                // * 此处也是取出了所有的状态记录
                 for (Tuple2<RowData, Integer> record : records) {
                     boolean matched =
                             inputIsLeft
@@ -170,6 +171,7 @@ public abstract class AbstractStreamingJoinOperator extends AbstractStreamOperat
                     }
                 }
             } else {
+                // ? 这里取出了另一侧所有的状态记录，然后再与当前的输入 input 进行比较，是否可以优化？
                 Iterable<RowData> records = otherSideStateView.getRecords();
                 for (RowData record : records) {
                     boolean matched =
