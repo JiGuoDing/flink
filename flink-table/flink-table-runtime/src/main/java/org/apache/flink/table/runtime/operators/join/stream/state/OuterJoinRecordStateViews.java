@@ -231,9 +231,12 @@ public final class OuterJoinRecordStateViews {
         public void addRecord(RowData record, int numOfAssociations) throws Exception {
             Tuple2<Integer, Integer> tuple = recordState.get(record);
             if (tuple != null) {
+                // 该条记录已存在
+                // 出现次数 + 1
                 tuple.f0 = tuple.f0 + 1;
                 tuple.f1 = numOfAssociations;
             } else {
+                // 该条记录不存在
                 tuple = Tuple2.of(1, numOfAssociations);
             }
             recordState.put(record, tuple);

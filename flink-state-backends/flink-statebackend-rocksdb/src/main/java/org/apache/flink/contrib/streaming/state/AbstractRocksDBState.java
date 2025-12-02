@@ -149,6 +149,7 @@ public abstract class AbstractRocksDBState<K, N, V> implements InternalKvState<K
 
     <UK> byte[] serializeCurrentKeyWithGroupAndNamespacePlusUserKey(
             UK userKey, TypeSerializer<UK> userKeySerializer) throws IOException {
+        // 存储在 RocksDB 里的键通常不是一个简单的用户键，为了支持 keyedState 的正确路由、隔离和查询，Flink 会将多个信息组合成一个唯一的 RocksDB 键。
         return sharedKeyNamespaceSerializer.buildCompositeKeyNamesSpaceUserKey(
                 currentNamespace, namespaceSerializer, userKey, userKeySerializer);
     }

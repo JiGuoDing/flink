@@ -552,9 +552,11 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
     /** An auxiliary utility to scan all entries under the given key. */
     private abstract class RocksDBMapIterator<T> implements Iterator<T> {
 
+        // 每次从 RocksDB 加载到内存的最大缓存数量
         private static final int CACHE_SIZE_LIMIT = 128;
 
         /** The db where data resides. */
+        // 指向正在使用的 RocksDB 实例
         private final RocksDB db;
 
         /**
@@ -567,9 +569,11 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
          * True if all entries have been accessed or the iterator has come across an entry with a
          * different prefix.
          */
+        // 当 Iterator 已经遍历完所有匹配 keyPrefixBytes 的 entry，或者遇到一个不匹配 keyPrefixBytes 的 entry 时，expired 会被置为 true
         private boolean expired = false;
 
         /** A in-memory cache for the entries in the rocksdb. */
+        // 目的是减少调用 JNI 接口访问 RocksDB 的开销
         private ArrayList<RocksDBMapEntry> cacheEntries = new ArrayList<>();
 
         /**
@@ -580,8 +584,11 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
 
         private int cacheIndex = 0;
 
+        // 用于将用户的 Key (UK 类型) 和 Value (UV 类型) 序列化为 RocksDB 中的字节
+        // 同时用来将 RocksDB 中的字节反序列化为用户的 Key 和 Value
         private final TypeSerializer<UK> keySerializer;
         private final TypeSerializer<UV> valueSerializer;
+        // 一个可复用的反序列化输入流对象，用于提高反序列化性能，避免频繁创建新输入流对象
         private final DataInputDeserializer dataInputView;
 
         RocksDBMapIterator(
@@ -600,6 +607,7 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
 
         @Override
         public boolean hasNext() {
+            // 确保缓存是最新的
             loadCache();
 
             return (cacheIndex < cacheEntries.size());
@@ -637,14 +645,14 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
                 throw new IllegalStateException();
             }
 
+            // 确保状态合法,如果缓存还有数据或已经结束,则无需加载
             // Load cache entries only when the cache is empty and there still exist unread entries
             if (cacheIndex < cacheEntries.size() || expired) {
                 return;
             }
 
             // use try-with-resources to ensure RocksIterator can be release even some runtime
-            // exception
-            // occurred in the below code block.
+            // exception occurred in the below code block.
             try (RocksIteratorWrapper iterator =
                     RocksDBOperationUtils.getRocksIterator(
                             db, columnFamily, backend.getReadOptions())) {
@@ -654,22 +662,29 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
                  * the currentEntry points to the last returned entry, and at that time, we will start
                  * the iterating from currentEntry if reloading cache is needed.
                  */
+                // 确定迭代的起始位置:
+                // 第一次加载：从 keyPrefixBytes 开始
+                // 后续加载：从上一次返回的条目 (currentEntry) 的下一个位置开始
                 byte[] startBytes =
                         (currentEntry == null ? keyPrefixBytes : currentEntry.rawKeyBytes);
 
+                // 清空旧缓存
                 cacheEntries.clear();
                 cacheIndex = 0;
 
+                // 定位到起始位置
                 iterator.seek(startBytes);
 
                 /*
                  * If the entry pointing to the current position is not removed, it will be the first entry in the
                  * new iterating. Skip it to avoid redundant access in such cases.
                  */
+                // 如果上一个条目 (currentEntry) 还存在且未被删除，那么 seek 定位到了它自己，跳过它，从下一个开始，避免重复访问
                 if (currentEntry != null && !currentEntry.deleted) {
                     iterator.next();
                 }
 
+                // 开始循环读取 Entry，直到遇到不匹配 keyPrefixBytes 的 Entry 或达到缓存上限
                 while (true) {
                     if (!iterator.isValid()
                             || !startWithKeyPrefix(keyPrefixBytes, iterator.key())) {
@@ -677,10 +692,12 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
                         break;
                     }
 
+                    // 检查缓存是否已达到限制大小
                     if (cacheEntries.size() >= CACHE_SIZE_LIMIT) {
                         break;
                     }
 
+                    // 创建一个 RocksDBMapEntry 对象封装当前的键值对
                     RocksDBMapEntry entry =
                             new RocksDBMapEntry(
                                     db,
