@@ -22,6 +22,7 @@ import org.apache.flink.core.memory.MemorySegment;
 import org.apache.flink.util.Preconditions;
 
 /** A basic implementation of {@link BinaryFormat} which describe a section of memory. */
+// 作用是作为 BinaryFormat 的一个轻量实现，用来表示一段连续的内存切片（不复制数据，只引用底层内存）
 @Internal
 public class BinarySection implements BinaryFormat {
 
@@ -42,6 +43,7 @@ public class BinarySection implements BinaryFormat {
         pointTo(new MemorySegment[] {segment}, offset, sizeInBytes);
     }
 
+    // 把当前 BinarySection 对象指向一段新的内存区域，而不是复制数据
     public void pointTo(MemorySegment[] segments, int offset, int sizeInBytes) {
         Preconditions.checkArgument(segments != null);
         this.segments = segments;
