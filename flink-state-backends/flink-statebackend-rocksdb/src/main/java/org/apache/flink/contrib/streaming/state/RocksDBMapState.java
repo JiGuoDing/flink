@@ -672,7 +672,7 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
                 cacheEntries.clear();
                 cacheIndex = 0;
 
-                // 定位到起始位置
+                // * 定位到起始位置 (这一步的开销最大)
                 iterator.seek(startBytes);
 
                 /*
