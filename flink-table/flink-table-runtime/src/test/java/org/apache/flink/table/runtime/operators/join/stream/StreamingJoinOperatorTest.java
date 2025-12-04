@@ -18,7 +18,6 @@
 
 package org.apache.flink.table.runtime.operators.join.stream;
 
-import org.apache.flink.contrib.streaming.state.EmbeddedRocksDBStateBackend;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;

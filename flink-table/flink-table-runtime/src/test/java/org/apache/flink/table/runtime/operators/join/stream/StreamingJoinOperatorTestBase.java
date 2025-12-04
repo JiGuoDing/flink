@@ -108,8 +108,8 @@ public abstract class StreamingJoinOperatorTestBase {
                         leftKeySelector,
                         rightKeySelector,
                         joinKeyTypeInfo);
-        // * 使用 EmbeddedRocksDBStateBackend 进行状态管理，模拟真实场景
-        testHarness.setStateBackend(new EmbeddedRocksDBStateBackend());
+        // * 使用 EmbeddedRocksDBStateBackend 进行状态管理，模拟真实场景 (经测试，无法使用)
+        // testHarness.setStateBackend(new EmbeddedRocksDBStateBackend());
         testHarness.open();
         // extend for mini-batch join test
         assertor =

@@ -354,6 +354,10 @@ public class EmbeddedRocksDBStateBackendTest
         }
     }
 
+    /**
+     * 测试在创建内部状态时，RocksDB 的 ColumnFamilyOptions, setMergeOperatorName 方法被正确调用。
+     * @throws Exception
+     */
     @TestTemplate
     public void testCorrectMergeOperatorSet() throws Exception {
         prepareRocksDB();
@@ -383,6 +387,10 @@ public class EmbeddedRocksDBStateBackendTest
         }
     }
 
+    /**
+     * 启动一步快照后取消并关闭 backend，检查所有创建的 RocksObject 都被正确关闭。
+     * @throws Exception
+     */
     @TestTemplate
     public void testReleasingSnapshotAfterBackendClosed() throws Exception {
         setupRocksKeyedStateBackend();
