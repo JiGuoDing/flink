@@ -569,7 +569,8 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
          * True if all entries have been accessed or the iterator has come across an entry with a
          * different prefix.
          */
-        // 当 Iterator 已经遍历完所有匹配 keyPrefixBytes 的 entry，或者遇到一个不匹配 keyPrefixBytes 的 entry 时，expired 会被置为 true
+        // 当 Iterator 已经遍历完所有匹配 keyPrefixBytes 的 entry，或者遇到一个不匹配 keyPrefixBytes 的 entry 时，expired
+        // 会被置为 true
         private boolean expired = false;
 
         /** A in-memory cache for the entries in the rocksdb. */

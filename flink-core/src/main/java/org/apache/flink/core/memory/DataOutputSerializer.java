@@ -28,11 +28,10 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 /**
- * A simple and efficient serializer for the {@link java.io.DataOutput} interface.
- * <br>
+ * A simple and efficient serializer for the {@link java.io.DataOutput} interface. <br>
  * <br>
  * 一个高效的可扩展字节缓冲区实现，提供DataOutputView接口以进行数据写入，并实现MemorySegmentWritable接口以支持从MemorySegment读取数据。
- * */
+ */
 public class DataOutputSerializer implements DataOutputView, MemorySegmentWritable {
 
     // 内部重用的字节数组缓冲区 (动态扩容)

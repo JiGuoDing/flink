@@ -18,6 +18,7 @@
 
 package org.apache.flink.table.runtime.operators.join.stream;
 
+import org.apache.flink.contrib.streaming.state.EmbeddedRocksDBStateBackend;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
@@ -144,6 +145,7 @@ public class StreamingJoinOperatorTest extends StreamingJoinOperatorTestBase {
     @Test
     public void testInnerJoinWithStateRetentionDisabled() throws Exception {
         testHarness.setStateTtlProcessingTime(1);
+        // testHarness.setStateBackend(new EmbeddedRocksDBStateBackend());
         testHarness.processElement1(
                 insertRecord("Ord#1", "LineOrd#1", "3 Bellevue Drive, Pottstown, PA 19464"));
         assertor.shouldEmitNothing(testHarness);

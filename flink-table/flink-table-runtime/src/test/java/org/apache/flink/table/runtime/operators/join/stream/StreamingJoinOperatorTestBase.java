@@ -18,6 +18,7 @@
 
 package org.apache.flink.table.runtime.operators.join.stream;
 
+import org.apache.flink.contrib.streaming.state.EmbeddedRocksDBStateBackend;
 import org.apache.flink.streaming.util.KeyedTwoInputStreamOperatorTestHarness;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.generated.GeneratedJoinCondition;
@@ -107,6 +108,8 @@ public abstract class StreamingJoinOperatorTestBase {
                         leftKeySelector,
                         rightKeySelector,
                         joinKeyTypeInfo);
+        // * 使用 EmbeddedRocksDBStateBackend 进行状态管理，模拟真实场景
+        testHarness.setStateBackend(new EmbeddedRocksDBStateBackend());
         testHarness.open();
         // extend for mini-batch join test
         assertor =

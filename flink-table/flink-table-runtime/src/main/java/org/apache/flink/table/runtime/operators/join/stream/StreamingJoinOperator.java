@@ -220,21 +220,24 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator {
             if (inputIsOuter) { // input side is outer 输入侧是 outer
                 OuterJoinRecordStateView inputSideOuterStateView =
                         (OuterJoinRecordStateView) inputSideStateView;
-                if (associatedRecords.isEmpty()) { // there is no matched rows on the other side 若另一侧无匹配
+                if (associatedRecords
+                        .isEmpty()) { // there is no matched rows on the other side 若另一侧无匹配
                     // send +I[record+null] 输出 +I[input + null]
                     outRow.setRowKind(RowKind.INSERT);
                     outputNullPadding(input, inputIsLeft);
                     // state.add(record, 0) 保存该记录并把匹配数（associations）设置为0
                     inputSideOuterStateView.addRecord(input, 0);
                 } else { // there are matched rows on the other side 若另一侧有匹配
-                    if (otherIsOuter) { // other side is outer 另一侧流也是 outer（此时为 Full Join），需要考虑是否存在 null-padding
+                    if (otherIsOuter) { // other side is outer 另一侧流也是 outer（此时为 Full Join），需要考虑是否存在
+                        // null-padding
                         // ? 为何要 cast 为 OuterJoinRecordStateView
                         OuterJoinRecordStateView otherSideOuterStateView =
                                 (OuterJoinRecordStateView) otherSideStateView;
                         // 遍历另一侧与当前输入记录匹配的的所有记录
                         for (OuterRecord outerRecord : associatedRecords.getOuterRecords()) {
                             RowData other = outerRecord.record;
-                            // if the matched num in the matched rows == 0 若另一侧记录的匹配次数为 0 -> 先撤回之前输出的 [null + other]
+                            // if the matched num in the matched rows == 0 若另一侧记录的匹配次数为 0 ->
+                            // 先撤回之前输出的 [null + other]
                             if (outerRecord.numOfAssociations == 0 && !isSuppress) {
                                 // send -D[null+other] 发送 -D[null + other] 撤回之前的 null-padding
                                 outRow.setRowKind(RowKind.DELETE);
@@ -262,7 +265,8 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator {
                 // state.add(record)
                 // ? 非 outer 侧直接加入状态（无需记录匹配次数）
                 inputSideStateView.addRecord(input);
-                if (!associatedRecords.isEmpty()) { // if there are matched rows on the other side 仅当另一侧有匹配记录时，才输出结果
+                if (!associatedRecords.isEmpty()) { // if there are matched rows on the other side
+                    // 仅当另一侧有匹配记录时，才输出结果
                     if (otherIsOuter) { // if other side is outer 另一侧是 outer，需要考虑 null-padding
                         OuterJoinRecordStateView otherSideOuterStateView =
                                 (OuterJoinRecordStateView) otherSideStateView;
@@ -301,13 +305,16 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator {
             if (!isSuppress) {
                 inputSideStateView.retractRecord(input);
             }
-            if (associatedRecords.isEmpty()) { // there is no matched rows on the other side 另一侧无匹配结果
-                if (inputIsOuter) { // input side is outer 输入侧是 outer，考虑到 null-padding，撤回之前的 [input + null]
+            if (associatedRecords
+                    .isEmpty()) { // there is no matched rows on the other side 另一侧无匹配结果
+                if (inputIsOuter) { // input side is outer 输入侧是 outer，考虑到 null-padding，撤回之前的 [input
+                    // + null]
                     // send -D[record+null]
                     outRow.setRowKind(RowKind.DELETE);
                     outputNullPadding(input, inputIsLeft);
                 }
-                // nothing to do when input side is not outer 输入侧不是 outer 则无需处理（因为当前前提是另一侧没有与 input 匹配的记录）
+                // nothing to do when input side is not outer 输入侧不是 outer 则无需处理（因为当前前提是另一侧没有与 input
+                // 匹配的记录）
             } else { // there are matched rows on the other side 另一侧有与 input 匹配的记录
                 // ? 这里的 outer 代表什么，为什么要区分是否是 outer
                 if (inputIsOuter) { // 如果输入侧是 outer，需要撤回之前输出的 [input + other] 结果
