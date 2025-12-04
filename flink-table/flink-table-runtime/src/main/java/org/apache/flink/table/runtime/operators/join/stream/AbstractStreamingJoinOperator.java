@@ -154,12 +154,14 @@ public abstract class AbstractStreamingJoinOperator extends AbstractStreamOperat
                 JoinCondition condition)
                 throws Exception {
             List<OuterRecord> associations = new ArrayList<>();
+            // 判断另一侧状态视图是否是 OuterJoinRecordStateView，用于区分当前是 Inner Join 还是 Outer Join，从而在状态管理和匹配上做出不同的处理，核心原因在于 Outer Join 需要额外维护“关联次数”信息
             if (otherSideStateView instanceof OuterJoinRecordStateView) {
+                // 强转为 OuterJoinRecordStateView
                 OuterJoinRecordStateView outerStateView =
                         (OuterJoinRecordStateView) otherSideStateView;
                 Iterable<Tuple2<RowData, Integer>> records =
                         outerStateView.getRecordsAndNumOfAssociations();
-                // * 此处也是取出了所有的状态记录
+                // * 此处也是取出了所有的状态记录 (关联记录, 关联次数)
                 for (Tuple2<RowData, Integer> record : records) {
                     boolean matched =
                             inputIsLeft
