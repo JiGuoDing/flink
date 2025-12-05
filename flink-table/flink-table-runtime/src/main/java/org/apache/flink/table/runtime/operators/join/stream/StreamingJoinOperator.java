@@ -299,7 +299,7 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator {
                 }
                 // skip when there is no matched rows on the other side 无匹配时不输出
             }
-        } else { // input record is retract 从状态中撤回该记录
+        } else { // input record is retract 撤回记录
             // state.retract(record)
             if (!isSuppress) {
                 inputSideStateView.retractRecord(input);
