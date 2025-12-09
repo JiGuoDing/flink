@@ -55,6 +55,7 @@ public class RocksStateKeysIterator<K> extends AbstractRocksStateKeysIterator<K>
         this.previousKey = null;
     }
 
+    // * 这个方法中包含更新 nextKey 的逻辑，因此在 next() 方法中调用 hasNext() 方法是必要的。
     @Override
     public boolean hasNext() {
         try {

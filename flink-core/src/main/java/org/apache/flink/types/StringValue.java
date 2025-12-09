@@ -800,6 +800,8 @@ public class StringValue
             int strlen = cs.length();
 
             // the length we write is offset by one, because a length of zero indicates a null value
+            // 写入的长度值比真实字符串长度大1，用来把 0 值保留给表示 null 的情况。
+            // 也就是说，存储格式用 0 表示空字符串引用（null），而实际字符串长度 L 会写为 L+1；读取时遇到 0 就返回 null，否则再减 1 得到真实长度。
             int lenToWrite = strlen + 1;
             if (lenToWrite < 0) {
                 throw new IllegalArgumentException("CharSequence is too long.");

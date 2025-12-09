@@ -174,6 +174,8 @@ public final class OuterJoinRecordStateViews {
         @Override
         public void addRecord(RowData record, int numOfAssociations) throws Exception {
             RowData uniqueKey = uniqueKeySelector.getKey(record);
+            // 将 uniqueKey 作为 MapState 的键 (userKey)，保证同一个唯一键只会存储一条记录
+            // 将 input 和 numOfAssociations 作为 MapState 的值
             recordState.put(uniqueKey, Tuple2.of(record, numOfAssociations));
         }
 
@@ -229,6 +231,7 @@ public final class OuterJoinRecordStateViews {
 
         @Override
         public void addRecord(RowData record, int numOfAssociations) throws Exception {
+            // * 既是 Outer Side，又是 Non-Unique Key，那么就需要同时记录该条记录出现的次数和关联次数
             Tuple2<Integer, Integer> tuple = recordState.get(record);
             if (tuple != null) {
                 // 该条记录已存在
@@ -236,7 +239,7 @@ public final class OuterJoinRecordStateViews {
                 tuple.f0 = tuple.f0 + 1;
                 tuple.f1 = numOfAssociations;
             } else {
-                // 该条记录不存在
+                // 该条记录不存在，出现次数置为 1
                 tuple = Tuple2.of(1, numOfAssociations);
             }
             recordState.put(record, tuple);
@@ -250,6 +253,7 @@ public final class OuterJoinRecordStateViews {
                 tuple.f1 = numOfAssociations;
             } else {
                 // compatible for state ttl
+                // 如果 tuple 是 null，说明该条记录不存在，那么就创建一个新的记录，出现次数为 1
                 tuple = Tuple2.of(1, numOfAssociations);
             }
             recordState.put(record, tuple);

@@ -258,6 +258,7 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator {
                     }
                     // state.add(record, other.size)
                     // 输入侧状态中添加该记录，标记匹配次数为 “匹配到的另一侧的记录数”
+                    // ? 为何要记录这个 associationRecords.size() 到 state 中
                     inputSideOuterStateView.addRecord(input, associatedRecords.size());
                 }
             } else { // input side not outer 输入侧不是 outer
