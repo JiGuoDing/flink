@@ -37,7 +37,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 
-/** Tests for the RocksIteratorWrapper. */
+/**
+ *  Tests for the RocksIteratorWrapper.
+ *  <br>
+ *  这个测试类主要验证 RocksStateKeyIterator 在真实 RocksDB 后端上的行为是否正确
+ *  */
 public class RocksDBRocksStateKeysIteratorTest {
 
     @Rule public final TemporaryFolder tmp = new TemporaryFolder();
