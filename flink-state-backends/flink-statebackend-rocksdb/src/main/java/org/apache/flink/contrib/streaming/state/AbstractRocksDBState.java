@@ -105,6 +105,7 @@ public abstract class AbstractRocksDBState<K, N, V> implements InternalKvState<K
 
         this.dataOutputView = new DataOutputSerializer(128);
         this.dataInputView = new DataInputDeserializer();
+        // * 从 RocksDBKeyedStateBackend 获取 SharedRocksKeyBuilder 实例，复用序列化逻辑
         this.sharedKeyNamespaceSerializer = backend.getSharedRocksKeyBuilder();
     }
 
