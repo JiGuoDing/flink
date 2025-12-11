@@ -30,10 +30,11 @@ import java.util.List;
 
 /**
  * A helper for KvState registrations of a single task.
- * <p>
- * TaskKvStateRegistry 本身负责 TaskManager 的任务级别的 KV 状态注册与查询 (例如可查询状态 queryable state 的注册与定位)
- * <p>
- * Flink 支持一种特性 Queryable State，允许外部系统 (比如 REST 客户端、另一个应用) 在作业运行时直接查询某个算子中某个 key 对应的状态值，而无需通过 Sink 输出或外部数据库
+ *
+ * <p>TaskKvStateRegistry 本身负责 TaskManager 的任务级别的 KV 状态注册与查询 (例如可查询状态 queryable state 的注册与定位)
+ *
+ * <p>Flink 支持一种特性 Queryable State，允许外部系统 (比如 REST 客户端、另一个应用) 在作业运行时直接查询某个算子中某个 key 对应的状态值，而无需通过
+ * Sink 输出或外部数据库
  */
 public class TaskKvStateRegistry {
 

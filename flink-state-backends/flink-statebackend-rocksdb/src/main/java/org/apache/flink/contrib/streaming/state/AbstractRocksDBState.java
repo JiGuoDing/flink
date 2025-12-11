@@ -61,12 +61,10 @@ public abstract class AbstractRocksDBState<K, N, V> implements InternalKvState<K
     protected RocksDBKeyedStateBackend<K> backend;
 
     /**
-     *  The column family of this particular instance of state.
-     *  <br>
-     *  在对 RocksDB 进行增删改查时，需要指定 column family，从而把不同 state 实例的数据隔离到不同的 column family。
-     * <br>
-     * column family  相当于一个逻辑上的“表”或“命名空间”，用于把不同类型/用途的数据在一个物理 RocksDB 实例中隔离开。
-     * */
+     * The column family of this particular instance of state. <br>
+     * 在对 RocksDB 进行增删改查时，需要指定 column family，从而把不同 state 实例的数据隔离到不同的 column family。 <br>
+     * column family 相当于一个逻辑上的“表”或“命名空间”，用于把不同类型/用途的数据在一个物理 RocksDB 实例中隔离开。
+     */
     protected ColumnFamilyHandle columnFamily;
 
     protected V defaultValue;

@@ -228,7 +228,8 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator {
                     // state.add(record, 0) 保存该记录并把匹配数（associations）设置为0
                     inputSideOuterStateView.addRecord(input, 0);
                 } else { // there are matched rows on the other side 若另一侧有匹配
-                    if (otherIsOuter) { // other side is outer 另一侧流也是 outer（此时为 Full Join），需要考虑是否存在 null-padding
+                    if (otherIsOuter) { // other side is outer 另一侧流也是 outer（此时为 Full Join），需要考虑是否存在
+                        // null-padding
                         // ? 为何要 cast 为 OuterJoinRecordStateView
                         OuterJoinRecordStateView otherSideOuterStateView =
                                 (OuterJoinRecordStateView) otherSideStateView;
