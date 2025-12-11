@@ -809,6 +809,7 @@ public class StringValue
 
             // string is prefixed by it's variable length encoded size, which can take 1-5 bytes.
             if (lenToWrite < HIGH_BIT) {
+                // * 把 lenToWrite 以变长编码的形式写入输出流中。
                 out.write((byte) lenToWrite);
             } else if (lenToWrite < HIGH_BIT14) {
                 out.write((lenToWrite | HIGH_BIT));

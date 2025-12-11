@@ -351,6 +351,7 @@ public abstract class AbstractKeyedStateBackend<K>
                 "State key serializer has not been configured in the config. "
                         + "This operation cannot use partitioned state.");
 
+        // * 按状态名从缓存查找
         InternalKvState<K, ?, ?> kvState = keyValueStatesByName.get(stateDescriptor.getName());
         if (kvState == null) {
             if (!stateDescriptor.isSerializerInitialized()) {
@@ -375,6 +376,7 @@ public abstract class AbstractKeyedStateBackend<K>
                 throw new IllegalStateException("State backend has not been initialized for job.");
             }
             String name = stateDescriptor.getQueryableStateName();
+            // * 在 kvStateRegistry 注册可查询状态以供外部查询
             kvStateRegistry.registerKvState(keyGroupRange, name, kvState, userCodeClassLoader);
         }
     }
@@ -389,6 +391,7 @@ public abstract class AbstractKeyedStateBackend<K>
     @SuppressWarnings("unchecked")
     @Override
     public <N, S extends State> S getPartitionedState(
+            // * 返回与指定命名空间和给定状态描述符关联的分区状态，供上层在当前 key 上读写状态
             final N namespace,
             final TypeSerializer<N> namespaceSerializer,
             final StateDescriptor<S, ?> stateDescriptor)
@@ -401,6 +404,8 @@ public abstract class AbstractKeyedStateBackend<K>
             return (S) lastState;
         }
 
+        // * 利用快速缓存 lastName / lastState：若上次请求的状态名与当前相同，
+        // * 直接复用并仅调用 lastState.setCurrentNamespace(namespace) 返回，避免 map 查找和对象创建。
         InternalKvState<K, ?, ?> previous = keyValueStatesByName.get(stateDescriptor.getName());
         if (previous != null) {
             lastState = previous;
@@ -409,6 +414,7 @@ public abstract class AbstractKeyedStateBackend<K>
             return (S) previous;
         }
 
+        // * 返回或创建一个 InternalKvState 实例，一个运行时的“状态访问器/句柄”，用于针对当前 key + namespace 读写底层存储 (RocksDB / heap 等)
         final S state = getOrCreateKeyedState(namespaceSerializer, stateDescriptor);
         final InternalKvState<K, N, ?> kvState = (InternalKvState<K, N, ?>) state;
 

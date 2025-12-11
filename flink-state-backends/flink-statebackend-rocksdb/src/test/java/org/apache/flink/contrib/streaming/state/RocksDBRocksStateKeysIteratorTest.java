@@ -17,6 +17,8 @@
 
 package org.apache.flink.contrib.streaming.state;
 
+import org.apache.flink.api.common.state.MapState;
+import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
@@ -72,16 +74,26 @@ public class RocksDBRocksStateKeysIteratorTest {
                 new RocksDBKeyedStateBackendTestFactory()) {
             RocksDBKeyedStateBackend<K> keyedStateBackend =
                     factory.create(tmp, keySerializer, maxKeyGroupNumber);
-            ValueState<String> testState =
-                    keyedStateBackend.getPartitionedState(
-                            namespace,
-                            StringSerializer.INSTANCE,
-                            new ValueStateDescriptor<>(testStateName, String.class));
+
+            // ValueState<String> testState =
+            //         keyedStateBackend.getPartitionedState(
+            //                 namespace,
+            //                 StringSerializer.INSTANCE,
+            //                 new ValueStateDescriptor<>(testStateName, String.class));
+
+            // * 测试 MapState 是否可行
+            MapState<Integer, String> testState = keyedStateBackend.getPartitionedState(
+                    namespace,
+                    StringSerializer.INSTANCE,
+                    new MapStateDescriptor<>(testStateName, Integer.class, String.class)
+            );
 
             // insert record
             for (int i = 0; i < 1000; ++i) {
                 keyedStateBackend.setCurrentKey(getKeyFunc.apply(i));
-                testState.update(String.valueOf(i));
+                // testState.update(String.valueOf(i));
+                // * 使用 MapState 时需使用 put 方法插入键值对
+                testState.put(i, String.valueOf(i));
             }
 
             DataOutputSerializer outputStream = new DataOutputSerializer(8);

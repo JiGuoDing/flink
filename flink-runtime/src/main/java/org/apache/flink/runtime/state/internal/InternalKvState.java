@@ -62,6 +62,8 @@ import java.util.Collection;
  * @param <V> The type of values kept internally in state
  */
 public interface InternalKvState<K, N, V> extends State {
+    // * 保存序列化器、默认值、后端句柄（如 ColumnFamilyHandle）、提供 get/update/setCurrentNamespace 等方法，
+    // * 负责把 key + namespace 序列化后真实读写存储、支持快照/恢复/遍历。
 
     /** Returns the {@link TypeSerializer} for the type of key this state is associated to. */
     TypeSerializer<K> getKeySerializer();
