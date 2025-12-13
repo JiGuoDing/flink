@@ -399,14 +399,16 @@ public abstract class AbstractKeyedStateBackend<K>
 
         checkNotNull(namespace, "Namespace");
 
+        // * 利用记录的 lastName / lastState：若上次请求的状态名与当前的状态名相同，
+        // * 直接复用并仅调用 lastState.setCurrentNamespace(namespace) 返回，避免 map 查找和对象创建。
         if (lastName != null && lastName.equals(stateDescriptor.getName())) {
             lastState.setCurrentNamespace(namespace);
             return (S) lastState;
         }
 
-        // * 利用快速缓存 lastName / lastState：若上次请求的状态名与当前相同，
-        // * 直接复用并仅调用 lastState.setCurrentNamespace(namespace) 返回，避免 map 查找和对象创建。
+        // * 尝试从 keyValueStatesByName (按状态名缓存所有已创建的 InternalKvState) 按状态名查找已有状态实例
         InternalKvState<K, ?, ?> previous = keyValueStatesByName.get(stateDescriptor.getName());
+        // * 找到了所需状态实例，更新命名空间后返回
         if (previous != null) {
             lastState = previous;
             lastState.setCurrentNamespace(namespace);
@@ -414,6 +416,7 @@ public abstract class AbstractKeyedStateBackend<K>
             return (S) previous;
         }
 
+        // * 未找到所需状态实例
         // * 返回或创建一个 InternalKvState 实例，一个运行时的“状态访问器/句柄”，用于针对当前 key + namespace 读写底层存储 (RocksDB / heap 等)
         final S state = getOrCreateKeyedState(namespaceSerializer, stateDescriptor);
         final InternalKvState<K, N, ?> kvState = (InternalKvState<K, N, ?>) state;

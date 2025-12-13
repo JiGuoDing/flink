@@ -51,7 +51,7 @@ public class RocksDBRocksStateKeysIteratorTest {
     public void testIterator() throws Exception {
 
         // test for keyGroupPrefixBytes == 1 && ambiguousKeyPossible == false
-        testIteratorHelper(IntSerializer.INSTANCE, 128, i -> 2*i);
+        testIteratorHelper(IntSerializer.INSTANCE, 128, i -> i);
 
         // test for keyGroupPrefixBytes == 1 && ambiguousKeyPossible == true
         testIteratorHelper(StringSerializer.INSTANCE, 128, String::valueOf);
@@ -81,20 +81,18 @@ public class RocksDBRocksStateKeysIteratorTest {
             //                 StringSerializer.INSTANCE,
             //                 new ValueStateDescriptor<>(testStateName, String.class));
 
-            // * 测试 MapState 是否可行
+            // * 测试 MapState 替代 ValueState 是否可行
             MapState<Integer, String> testState = keyedStateBackend.getPartitionedState(
                     namespace,
                     StringSerializer.INSTANCE,
                     new MapStateDescriptor<>(testStateName, Integer.class, String.class)
             );
 
-            // insert record (i used to start from 0, jgd edited it)
-            for (int i = 1; i < 1000; ++i) {
+            for (int i = 0; i < 1000; ++i) {
                 keyedStateBackend.setCurrentKey(getKeyFunc.apply(i));
                 // testState.update(String.valueOf(i));
                 // * 使用 MapState 时需使用 put 方法插入键值对
-                // testState.put(i, String.valueOf(i));
-                testState.put(i, "a");
+                testState.put(i, String.valueOf(i));
             }
 
             DataOutputSerializer outputStream = new DataOutputSerializer(8);
