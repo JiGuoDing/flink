@@ -417,7 +417,8 @@ public abstract class AbstractKeyedStateBackend<K>
         }
 
         // * 未找到所需状态实例
-        // * 返回或创建一个 InternalKvState 实例，一个运行时的“状态访问器/句柄”，用于针对当前 key + namespace 读写底层存储 (RocksDB / heap 等)
+        // * 返回或创建一个 InternalKvState 实例，一个运行时的“状态访问器/句柄”，用于针对当前 key + namespace 读写底层存储 (RocksDB /
+        // heap 等)
         final S state = getOrCreateKeyedState(namespaceSerializer, stateDescriptor);
         final InternalKvState<K, N, ?> kvState = (InternalKvState<K, N, ?>) state;
 

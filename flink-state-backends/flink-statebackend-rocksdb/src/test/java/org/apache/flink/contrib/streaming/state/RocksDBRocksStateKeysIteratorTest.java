@@ -19,8 +19,6 @@ package org.apache.flink.contrib.streaming.state;
 
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
-import org.apache.flink.api.common.state.ValueState;
-import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.common.typeutils.base.IntSerializer;
 import org.apache.flink.api.common.typeutils.base.StringSerializer;
@@ -82,11 +80,11 @@ public class RocksDBRocksStateKeysIteratorTest {
             //                 new ValueStateDescriptor<>(testStateName, String.class));
 
             // * 测试 MapState 替代 ValueState 是否可行
-            MapState<Integer, String> testState = keyedStateBackend.getPartitionedState(
-                    namespace,
-                    StringSerializer.INSTANCE,
-                    new MapStateDescriptor<>(testStateName, Integer.class, String.class)
-            );
+            MapState<Integer, String> testState =
+                    keyedStateBackend.getPartitionedState(
+                            namespace,
+                            StringSerializer.INSTANCE,
+                            new MapStateDescriptor<>(testStateName, Integer.class, String.class));
 
             for (int i = 0; i < 1000; ++i) {
                 keyedStateBackend.setCurrentKey(getKeyFunc.apply(i));
