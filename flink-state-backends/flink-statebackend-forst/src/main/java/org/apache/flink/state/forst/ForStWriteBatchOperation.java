@@ -51,15 +51,25 @@ public class ForStWriteBatchOperation implements ForStDBOperation {
         this.executor = executor;
     }
 
+    /**
+     * <p> process() 返回一个异步执行的 CompletableFuture<Void>，在给定的 executor 中将 batchRequest
+     * 中的请求打包成一个 RocksDB 的 WriteBatch 并一次性写入。如果写入成功，会彼为每个请求标记完成；
+     * 若发生异常，会为每个请求标记失败并让返回的 future 异常完成。
+     *
+     * <p> 该方法本身非阻塞，调用者立即得到 CompletableFuture<Void>，实际 IO 在指定的 executor 线程执行。
+     * @return
+     */
     @Override
     public CompletableFuture<Void> process() {
         return CompletableFuture.runAsync(
                 () -> {
+                    // 创建一个初始容量为 batchRequest.size() * PER_RECORD_ESTIMATE_BYTES 的 WriteBatch
                     try (WriteBatch writeBatch =
                             new WriteBatch(batchRequest.size() * PER_RECORD_ESTIMATE_BYTES)) {
+                        // 遍历 batchRequest 中的每个 ForstDBPutRequest
                         for (ForStDBPutRequest<?, ?> request : batchRequest) {
                             if (request.valueIsNull()) {
-                                // put(key, null) == delete(key)
+                                // * put(key, null) == delete(key)：将 put(key, null) 视为删除
                                 writeBatch.delete(
                                         request.getColumnFamilyHandle(),
                                         request.buildSerializedKey());
@@ -70,7 +80,9 @@ public class ForStWriteBatchOperation implements ForStDBOperation {
                                         request.buildSerializedValue());
                             }
                         }
+                        // * 将整个 WriteBatch 一次性 (原子性) 写入 RocksDB
                         db.write(writeOptions, writeBatch);
+                        // * 若 db.write() 成功，则为 batchRequest 中的每个请求标记完成
                         for (ForStDBPutRequest<?, ?> request : batchRequest) {
                             request.completeStateFuture();
                         }

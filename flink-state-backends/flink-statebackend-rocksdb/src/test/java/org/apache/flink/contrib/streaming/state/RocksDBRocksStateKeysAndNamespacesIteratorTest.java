@@ -17,6 +17,8 @@
 
 package org.apache.flink.contrib.streaming.state;
 
+import org.apache.flink.api.common.state.MapState;
+import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
@@ -72,16 +74,25 @@ public class RocksDBRocksStateKeysAndNamespacesIteratorTest {
             RocksDBKeyedStateBackend<K> keyedStateBackend =
                     factory.create(tmp, keySerializer, maxKeyGroupNumber);
 
-            ValueState<String> testState =
-                    keyedStateBackend.getPartitionedState(
-                            namespace,
-                            StringSerializer.INSTANCE,
-                            new ValueStateDescriptor<>(testStateName, String.class));
+            // ValueState<String> testState =
+            //         keyedStateBackend.getPartitionedState(
+            //                 namespace,
+            //                 StringSerializer.INSTANCE,
+            //                 new ValueStateDescriptor<>(testStateName, String.class));
+
+            // * getPartitionedState 返回一个针对当前 key (由 setCurrentKey 指定) 和指定 namespace 的
+            // * 分区化 State (如 ValueState, MapState 等) 句柄，用于读取该 key+namespace 对应的状态。
+            MapState<Integer, String> testState = keyedStateBackend.getPartitionedState(
+                    namespace,
+                    StringSerializer.INSTANCE,
+                    new MapStateDescriptor<>(testStateName, Integer.class, String.class)
+            );
 
             // insert record
             for (int i = 0; i < 1000; ++i) {
                 keyedStateBackend.setCurrentKey(getKeyFunc.apply(i));
-                testState.update(String.valueOf(i));
+                // testState.update(String.valueOf(i));
+                testState.put(i, String.valueOf(i));
             }
 
             DataOutputSerializer outputStream = new DataOutputSerializer(8);

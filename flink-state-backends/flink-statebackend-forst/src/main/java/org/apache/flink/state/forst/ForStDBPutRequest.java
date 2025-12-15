@@ -36,6 +36,7 @@ public class ForStDBPutRequest<K, V> {
 
     private final K key;
     @Nullable private final V value;
+    // * 这个 table 对应具体的 State 实例 (当前版本只有 ForstValueState)
     private final ForStInnerTable<K, V> table;
     private final InternalStateFuture<Void> future;
 

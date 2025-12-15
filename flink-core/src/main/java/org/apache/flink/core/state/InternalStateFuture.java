@@ -23,7 +23,7 @@ import org.apache.flink.api.common.state.v2.StateFuture;
 import org.apache.flink.util.function.ThrowingConsumer;
 
 /**
- * The Internal definition of {@link StateFuture}, add some method that will be used by framework.
+ * The Internal definition of {@link StateFuture}, add some methods that will be used by framework.
  */
 @Internal
 public interface InternalStateFuture<T> extends StateFuture<T> {
