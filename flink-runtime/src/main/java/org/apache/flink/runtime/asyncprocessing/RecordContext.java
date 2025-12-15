@@ -72,6 +72,7 @@ public class RecordContext<K> extends ReferenceCounted<RecordContext.DisposerRun
         this.record = record;
         this.key = key;
         this.keyOccupied = false;
+        // * 负责在 RecordContext 生命周期结束时进行清理工作
         this.disposer = disposer;
         this.keyGroup = keyGroup;
         this.epoch = epoch;
@@ -100,6 +101,7 @@ public class RecordContext<K> extends ReferenceCounted<RecordContext.DisposerRun
         if (keyOccupied) {
             keyOccupied = false;
             if (disposerRunner != null) {
+                // * 触发 disposer 进行清理工作
                 disposerRunner.runDisposer(() -> disposer.accept(this));
             } else {
                 disposer.accept(this);

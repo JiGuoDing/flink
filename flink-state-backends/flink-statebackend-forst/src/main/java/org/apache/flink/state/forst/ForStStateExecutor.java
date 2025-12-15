@@ -74,33 +74,45 @@ public class ForStStateExecutor implements StateExecutor {
     @Override
     public CompletableFuture<Void> executeBatchRequests(
             StateRequestContainer stateRequestContainer) {
+        // 检查上一次执行是否发生错误 (若有则抛出，阻止新批次)
         checkState();
         Preconditions.checkArgument(stateRequestContainer instanceof ForStStateRequestClassifier);
         ForStStateRequestClassifier stateRequestClassifier =
                 (ForStStateRequestClassifier) stateRequestContainer;
+        // 返回给调用者的异步句柄 (立即返回，实际完成在 coordinator 线程)
         CompletableFuture<Void> resultFuture = new CompletableFuture<>();
+        // 在 coordinator 线程中执行批次请求 (保证批次顺序性)
         coordinatorThread.execute(
                 () -> {
                     long startTime = System.currentTimeMillis();
+                    // 用于收集所有子操作的 futures (例如 put 操作，get 操作)
                     List<CompletableFuture<Void>> futures = new ArrayList<>(2);
+                    // 从分类器中获取需要写入 DB 的请求 (按 keyGroup 等已分类)
                     List<ForStDBPutRequest<?, ?>> putRequests =
                             stateRequestClassifier.pollDbPutRequests();
                     if (!putRequests.isEmpty()) {
+                        // 构造写批次操作，实际 I/O 在 workerThreads 并发执行
                         ForStWriteBatchOperation writeOperations =
                                 new ForStWriteBatchOperation(
                                         db, putRequests, writeOptions, workerThreads);
+                        // 将写操作的 future 加入集合，后续统一组合
                         futures.add(writeOperations.process());
                     }
 
+                    // 从分类器中获取需要从 DB 读取的请求
                     List<ForStDBGetRequest<?, ?>> getRequests =
                             stateRequestClassifier.pollDbGetRequests();
                     if (!getRequests.isEmpty()) {
+                        // 构造多项并发 get 操作，实际 I/O 在 workerThreads 并发执行
                         ForStGeneralMultiGetOperation getOperations =
                                 new ForStGeneralMultiGetOperation(db, getRequests, workerThreads);
+                        // 将读操作的 future 添加到集合，稍后统一组合
                         futures.add(getOperations.process());
                     }
 
+                    // * 将所有子 future 组合成一个整体 future
                     FutureUtils.combineAll(futures)
+                            // 当所有子操作成功时，在 coordinator 线程中完成 resultFuture
                             .thenAcceptAsync(
                                     (e) -> {
                                         long duration = System.currentTimeMillis() - startTime;
@@ -112,6 +124,7 @@ public class ForStStateExecutor implements StateExecutor {
                                         resultFuture.complete(null);
                                     },
                                     coordinatorThread)
+                            // 若任一子操作失败，则记录 executionError 并将异常传递给 resultFuture
                             .exceptionally(
                                     e -> {
                                         executionError = e;
@@ -119,6 +132,7 @@ public class ForStStateExecutor implements StateExecutor {
                                         return null;
                                     });
                 });
+        // 方法立即返回，不阻塞调用者通过返回的CompletableFuture 获取执行结果
         return resultFuture;
     }
 

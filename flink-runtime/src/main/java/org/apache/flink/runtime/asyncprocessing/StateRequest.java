@@ -28,6 +28,11 @@ import java.io.Serializable;
 /**
  * A request encapsulates the necessary data to perform a state request.
  *
+ * <p> 把 StateRequest 想成一个“快递包裹”：包裹外面写着目的地（RecordContext，即哪个 key）、
+ * 包裹类型标签（type）、包内物品（payload）和一张回执单（stateFuture）。
+ * 配送员（状态执行器）接到包裹去投递，投递完成在回执上签字（完成 future），
+ * 包裹处理完后回收包装并释放占用（disposer）。
+ *
  * @param <K> Type of partitioned key.
  * @param <IN> Type of input of this request.
  * @param <OUT> Type of value that request will return.
@@ -57,10 +62,13 @@ public class StateRequest<K, IN, OUT> implements Serializable {
             @Nullable IN payload,
             InternalStateFuture<OUT> stateFuture,
             RecordContext<K> context) {
+        // 要访问的 state
         this.state = state;
         this.type = type;
         this.payload = payload;
         this.stateFuture = stateFuture;
+        // RecordContext 是围绕单条记录封装的上下文与生命周期管理单元，负责保存该记录相关元数据，
+        // 并在引用计数结束时安全地释放与键相关的占用。
         this.context = context;
     }
 
