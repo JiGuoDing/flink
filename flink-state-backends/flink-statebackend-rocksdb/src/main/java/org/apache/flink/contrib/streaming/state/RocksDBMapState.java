@@ -421,7 +421,13 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
     //  Internal Classes
     // ------------------------------------------------------------------------
 
-    /** A map entry in RocksDBMapState. */
+    /**
+     * <p> A map entry in RocksDBMapState.
+     *
+     * <p> 对 RocksDB 中一条 MapState 条目的封装，保存了 RocksDB 中的原始 key/value 字节数组（rawKeyBytes / rawValueBytes）和用于访问的 db 引用
+     *
+     * <p> 延迟反序列化：getKey() / getValue() 只有在第一次访问时才用 DataInputDeserializer 和相应的 TypeSerializer 反序列化成用户类型，降低不必要开销
+     * */
     private class RocksDBMapEntry implements Map.Entry<UK, UV> {
         private final RocksDB db;
 
@@ -649,6 +655,7 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
             // 确保状态合法,如果缓存还有数据或已经结束,则无需加载
             // Load cache entries only when the cache is empty and there still exist unread entries
             if (cacheIndex < cacheEntries.size() || expired) {
+                LOG.info("No need to load cache.");
                 return;
             }
 
@@ -668,6 +675,7 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
                 // 后续加载：从上一次返回的条目 (currentEntry) 的下一个位置开始
                 byte[] startBytes =
                         (currentEntry == null ? keyPrefixBytes : currentEntry.rawKeyBytes);
+                LOG.info("Loading cache from bytes: {}", Arrays.toString(startBytes));
 
                 // 清空旧缓存
                 cacheEntries.clear();
@@ -710,6 +718,8 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
                                     dataInputView);
 
                     cacheEntries.add(entry);
+
+                    LOG.info("Loaded entry with key bytes: {}", Arrays.toString(iterator.key()));
 
                     iterator.next();
                 }
