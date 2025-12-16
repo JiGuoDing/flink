@@ -43,6 +43,8 @@ import java.nio.ByteBuffer;
  * in this case, status() is OK; 2) There is an error. In this case, status() is not OK; More
  * information can be found <a
  * href="https://github.com/facebook/rocksdb/wiki/Iterator#error-handling">here</a>.
+ *
+ * <p>RocksIterator 的轻量封装器，主要作用是将大部分调用 (seek, next, key, value 等) 委托给底层 RocksIterator
  */
 public class RocksIteratorWrapper implements RocksIteratorInterface, Closeable {
 

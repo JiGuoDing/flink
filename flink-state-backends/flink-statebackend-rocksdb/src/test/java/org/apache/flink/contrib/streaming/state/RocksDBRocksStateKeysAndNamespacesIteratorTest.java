@@ -19,8 +19,6 @@ package org.apache.flink.contrib.streaming.state;
 
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
-import org.apache.flink.api.common.state.ValueState;
-import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.common.typeutils.base.IntSerializer;
 import org.apache.flink.api.common.typeutils.base.StringSerializer;
@@ -37,7 +35,9 @@ import org.rocksdb.ColumnFamilyHandle;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /** Tests for the RocksDBRocksStateKeysAndNamespacesIterator. */
@@ -82,17 +82,29 @@ public class RocksDBRocksStateKeysAndNamespacesIteratorTest {
 
             // * getPartitionedState 返回一个针对当前 key (由 setCurrentKey 指定) 和指定 namespace 的
             // * 分区化 State (如 ValueState, MapState 等) 句柄，用于读取该 key+namespace 对应的状态。
-            MapState<Integer, String> testState = keyedStateBackend.getPartitionedState(
-                    namespace,
-                    StringSerializer.INSTANCE,
-                    new MapStateDescriptor<>(testStateName, Integer.class, String.class)
-            );
+            MapState<Integer, String> testState =
+                    keyedStateBackend.getPartitionedState(
+                            namespace,
+                            StringSerializer.INSTANCE,
+                            new MapStateDescriptor<>(testStateName, Integer.class, String.class));
 
             // insert record
             for (int i = 0; i < 1000; ++i) {
                 keyedStateBackend.setCurrentKey(getKeyFunc.apply(i));
                 // testState.update(String.valueOf(i));
                 testState.put(i, String.valueOf(i));
+
+                // Test for get()
+                // String str_i = testState.get(i);
+                // System.out.println("key: " + i + ", value: " + str_i);
+
+                // Test for iterator()
+                Iterator<Map.Entry<Integer, String>> iterator = testState.iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<Integer, String> entry = iterator.next();
+                    System.out.println(
+                            "iter key: " + entry.getKey() + ", value: " + entry.getValue());
+                }
             }
 
             DataOutputSerializer outputStream = new DataOutputSerializer(8);

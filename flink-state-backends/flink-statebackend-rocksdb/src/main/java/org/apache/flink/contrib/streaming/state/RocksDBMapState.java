@@ -203,6 +203,7 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
 
     @Override
     public Iterable<UV> values() {
+        // ? 是否可以将 prefixBytes [kegGroupId | userKey | namespace] 缓存起来，避免每次调用 values() 都重新计算一次
         final byte[] prefixBytes = serializeCurrentKeyWithGroupAndNamespace();
 
         return () ->
@@ -253,6 +254,7 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
     @Override
     public Iterator<Map.Entry<UK, UV>> iterator() {
         final byte[] prefixBytes = serializeCurrentKeyWithGroupAndNamespace();
+        LOG.info("Creating RocksDBMapIterator with prefix bytes: {}", Arrays.toString(prefixBytes));
 
         return new RocksDBMapIterator<Map.Entry<UK, UV>>(
                 backend.db, prefixBytes, userKeySerializer, userValueSerializer, dataInputView) {
@@ -408,6 +410,7 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
             return false;
         }
 
+        // ? 能否一次性比较多个字节，而不是一个个字节比较
         for (int i = keyPrefixBytes.length; --i >= backend.getKeyGroupPrefixBytes(); ) {
             if (rawKeyBytes[i] != keyPrefixBytes[i]) {
                 return false;
@@ -422,12 +425,14 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
     // ------------------------------------------------------------------------
 
     /**
-     * <p> A map entry in RocksDBMapState.
+     * A map entry in RocksDBMapState.
      *
-     * <p> 对 RocksDB 中一条 MapState 条目的封装，保存了 RocksDB 中的原始 key/value 字节数组（rawKeyBytes / rawValueBytes）和用于访问的 db 引用
+     * <p>对 RocksDB 中一条 MapState 条目的封装，保存了 RocksDB 中的原始 key/value 字节数组（rawKeyBytes /
+     * rawValueBytes）和用于访问的 db 引用
      *
-     * <p> 延迟反序列化：getKey() / getValue() 只有在第一次访问时才用 DataInputDeserializer 和相应的 TypeSerializer 反序列化成用户类型，降低不必要开销
-     * */
+     * <p>延迟反序列化：getKey() / getValue() 只有在第一次访问时才用 DataInputDeserializer 和相应的 TypeSerializer
+     * 反序列化成用户类型，降低不必要开销
+     */
     private class RocksDBMapEntry implements Map.Entry<UK, UV> {
         private final RocksDB db;
 
@@ -614,9 +619,11 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
 
         @Override
         public boolean hasNext() {
-            // 确保缓存是最新的
+            // 保证缓存被填充或确定已耗尽
+            // 所有 IO 工作由 loadCache() 完成
             loadCache();
 
+            // cacheIndex 与 cacheEntries 均在 loadCache() 中被更新过了
             return (cacheIndex < cacheEntries.size());
         }
 
@@ -661,6 +668,7 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
 
             // use try-with-resources to ensure RocksIterator can be release even some runtime
             // exception occurred in the below code block.
+            // 打开一个 RocksIteratorWrapper 来遍历 RocksDB 中的条目
             try (RocksIteratorWrapper iterator =
                     RocksDBOperationUtils.getRocksIterator(
                             db, columnFamily, backend.getReadOptions())) {
@@ -673,6 +681,7 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
                 // 确定迭代的起始位置:
                 // 第一次加载：从 keyPrefixBytes 开始
                 // 后续加载：从上一次返回的条目 (currentEntry) 的下一个位置开始
+                // 因为 RocksDB 中是按字典序存储的，所以可以通过 seek 定位到指定位置
                 byte[] startBytes =
                         (currentEntry == null ? keyPrefixBytes : currentEntry.rawKeyBytes);
                 LOG.info("Loading cache from bytes: {}", Arrays.toString(startBytes));
@@ -695,6 +704,7 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
 
                 // 开始循环读取 Entry，直到遇到不匹配 keyPrefixBytes 的 Entry 或达到缓存上限
                 while (true) {
+                    // 迭代器失效或遇到不匹配前缀的条目，结束迭代
                     if (!iterator.isValid()
                             || !startWithKeyPrefix(keyPrefixBytes, iterator.key())) {
                         expired = true;
@@ -720,6 +730,8 @@ class RocksDBMapState<K, N, UK, UV> extends AbstractRocksDBState<K, N, Map<UK, U
                     cacheEntries.add(entry);
 
                     LOG.info("Loaded entry with key bytes: {}", Arrays.toString(iterator.key()));
+                    LOG.info(
+                            "Loaded entry with value bytes: {}", Arrays.toString(iterator.value()));
 
                     iterator.next();
                 }

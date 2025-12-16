@@ -52,11 +52,11 @@ public class ForStWriteBatchOperation implements ForStDBOperation {
     }
 
     /**
-     * <p> process() 返回一个异步执行的 CompletableFuture<Void>，在给定的 executor 中将 batchRequest
-     * 中的请求打包成一个 RocksDB 的 WriteBatch 并一次性写入。如果写入成功，会彼为每个请求标记完成；
-     * 若发生异常，会为每个请求标记失败并让返回的 future 异常完成。
+     * process() 返回一个异步执行的 CompletableFuture，在给定的 executor 中将 batchRequest 中的请求打包成一个 RocksDB
+     * 的WriteBatch 并一次性写入。如果写入成功，会彼为每个请求标记完成； 若发生异常，会为每个请求标记失败并让返回的 future 异常完成.
      *
-     * <p> 该方法本身非阻塞，调用者立即得到 CompletableFuture<Void>，实际 IO 在指定的 executor 线程执行。
+     * <p>该方法本身非阻塞，调用者立即得到 CompletableFuture，实际 IO 在指定的 executor 线程执行.
+     *
      * @return
      */
     @Override
