@@ -19,12 +19,10 @@
 
 ## 2. 聚簇存二级表明细的可行性分析
 
-非主键 Join 场景下，如果以主键物理聚簇存储，则点查有序性不可避免会受到影响 (或这可以保证在聚簇的范围内有序)。
-
-? 如何让一个 Join Key 对应的所有 Primary Key 相邻存储 (为了一次性读取)
-
-- 同一个二级键对应的主键记录存放到一个 datablock 中？
-
 Join Key (二级键) 层：仅存储 [Join Key | Pointer to Primary Key Layer]。
 
-Primary Key (主键) 层：存储 Join Key 对应的所有主键条目，通过 PKey Group 将同一个 Join Key 对应的条目聚簇存储在一起。(是否要改变 SSTable 结构，还是只改变 datablock 组织方式，还是改变 Flink 里的读写接口逻辑？)
+Primary Key (主键) 层：存储 Join Key 对应的所有主键条目，通过 PKey Group 将同一个 Join Key 对应的 Primary Key 聚簇存在一起。(改变 SSTable 结构？改变 datablock 组织方式？改变 Flink 里的读写接口逻辑？在 Flink 中维护 Join Key 层，而Primary Key 层仍由 RocksDB 负责存储)
+
+非主键 Join 场景下，如果以 Join Key (二级键) 所对应的主键物理聚簇存储，则主键的有序性必然受到影响 (可以考虑在聚簇的范围内有序)，点查有序性不可避免会受到影响。
+
+如何让一个 Join Key 对应的所有 Primary Key 相邻存储 (为了一次性读取)？
