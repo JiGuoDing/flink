@@ -155,17 +155,17 @@ public abstract class AbstractStreamingJoinOperator extends AbstractStreamOperat
                 throws Exception {
             List<OuterRecord> associations = new ArrayList<>();
             if (otherSideStateView instanceof OuterJoinRecordStateView) {
+                // ! 商业版中是一次性读取多条明细，打包进一个 value.
+                // ? 如何让一个 Join Key 对应的所有 Primary Key Entry 相邻存储 (为了一次性读取)
+                // ? 这里创建了对另一侧对应键所有的状态记录进行迭代的迭代器，然后迭代遍历逐个与当前的输入 input 进行比较，是否可以优化?
                 // TODO 索引优化应当在此处起作用.
                 /*
                 1. 查 Join Key 索引
                 2. 查 Primary Key 索引
                 3. 根据索引结果，读取出所有相关记录
-                ? 如何让一个 Join Key 对应的所有 Primary Key 相邻存储 (为了一次性读取)
                  */
-                // ! 商业版中是一次性读取多条明细，打包进一个 value.
                 OuterJoinRecordStateView outerStateView =
                         (OuterJoinRecordStateView) otherSideStateView;
-                // ? 这里创建了对另一侧对应键所有的状态记录进行迭代的迭代器，然后迭代遍历逐个与当前的输入 input 进行比较，是否可以优化?
                 Iterable<Tuple2<RowData, Integer>> records =
                         outerStateView.getRecordsAndNumOfAssociations();
                 for (Tuple2<RowData, Integer> record : records) {

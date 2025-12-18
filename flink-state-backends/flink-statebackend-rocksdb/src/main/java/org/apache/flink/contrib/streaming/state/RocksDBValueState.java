@@ -99,10 +99,9 @@ class RocksDBValueState<K, N, V> extends AbstractRocksDBState<K, N, V>
             return;
         }
 
-        /*
-         * 在默认情况下，不同的 keyed state (例如 join 的 left state / right state) 各自对应一个 RocksDB column family
-         */
+         // * 在默认情况下，不同的 keyed state (例如 join 的 left state / right state) 各自对应一个 RocksDB column family
         try {
+            // * 盲写特性：直接把序列化后的 key 和 value 写入 RocksDB 中，等待后续 Compaction 进行去重合并
             backend.db.put(
                     columnFamily,
                     writeOptions,
