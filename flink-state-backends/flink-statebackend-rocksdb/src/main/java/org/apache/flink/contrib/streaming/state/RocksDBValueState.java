@@ -94,6 +94,7 @@ class RocksDBValueState<K, N, V> extends AbstractRocksDBState<K, N, V>
     @Override
     public void update(V value) throws IOException {
         if (value == null) {
+            // 以空值更新相当于删除
             clear();
             return;
         }
